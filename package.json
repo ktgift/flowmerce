@@ -1,0 +1,12 @@
+{
+  "name": "flowmerce",
+  "workspaces": ["shared", "frontend", "server"],
+  "scripts": {
+    "dev:server": "bun --cwd server run dev",
+    "dev:web": "pnpm --dir frontend run dev",
+    "start:server": "bun --cwd server run start",
+    "test": "bun --cwd server test",
+    "install:web": "pnpm install --filter shared... --filter frontend...",
+    "build:web": "pnpm --dir frontend run build"
+  }
+}
