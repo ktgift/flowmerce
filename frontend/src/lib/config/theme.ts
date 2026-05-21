@@ -6,6 +6,9 @@ const theme = createTheme({
     primary: { main: COLORS.primary },
     secondary: { main: COLORS.secondary },
     background: { default: COLORS.backgroundDefault },
+    // text: {
+    //   secondary: COLORS.subText,
+    // },
   },
   typography: {
     fontFamily: '-apple-system, BlinkMacSystemFont, "Roboto", sans-serif',

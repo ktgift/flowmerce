@@ -53,13 +53,15 @@ export const endpoints = {
   },
 
   purchaseOrder: {
-    list:        "/api/purchase-orders",
-    create:      "/api/purchase-orders",
-    get:         (id: number) => `/api/purchase-orders/${id}`,
-    update:      (id: number) => `/api/purchase-orders/${id}`,
-    delete:      (id: number) => `/api/purchase-orders/${id}`,
-    updateStatus:(id: number) => `/api/purchase-orders/${id}/status`,
-    receipts:    (id: number) => `/api/purchase-orders/${id}/receipts`,
+    list:          "/api/purchase-orders",
+    create:        "/api/purchase-orders",
+    get:           (id: number) => `/api/purchase-orders/${id}`,
+    update:        (id: number) => `/api/purchase-orders/${id}`,
+    delete:        (id: number) => `/api/purchase-orders/${id}`,
+    updateStatus:  (id: number) => `/api/purchase-orders/${id}/status`,
+    receipts:      (id: number) => `/api/purchase-orders/${id}/receipts`,
+    history:       (id: number) => `/api/purchase-orders/${id}/history`,
+    fromQuotation: (quotationId: number) => `/api/purchase-orders/from-quotation/${quotationId}`,
   },
 
   upload: {
