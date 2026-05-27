@@ -154,13 +154,15 @@ export interface TenantContext {
 
 export type PoStatus =
   | "draft"
-  | "pending_approval"
-  | "approved"
-  | "sent_to_supplier"
+  | "issued"
+  | "acknowledged"
   | "partial_received"
   | "received"
   | "closed"
   | "cancelled"
+  | "pending_approval"
+  | "approved"
+  | "sent_to_supplier"
   | "rejected"
 
 export interface CreatePoItemInput {
@@ -180,26 +182,28 @@ export interface CreatePoItemInput {
 }
 
 export interface CreatePoInput {
-  supplierId?:   number | null
-  currency?:     string
-  exchangeRate?: number
-  paymentTerm?:  string | null
-  deliveryTerm?: string | null
-  expectedDate?: string | null
-  remark?:       string | null
-  createdBy?:    string | null
-  items:         CreatePoItemInput[]
+  supplierId?:     number | null
+  currency?:       string
+  exchangeRate?:   number
+  paymentTerm?:    string | null
+  deliveryTerm?:   string | null
+  shippingMethod?: string | null
+  expectedDate?:   string | null
+  remark?:         string | null
+  createdBy?:      string | null
+  items:           CreatePoItemInput[]
 }
 
 export interface UpdatePoInput {
-  supplierId?:   number | null
-  currency?:     string
-  exchangeRate?: number
-  paymentTerm?:  string | null
-  deliveryTerm?: string | null
-  expectedDate?: string | null
-  remark?:       string | null
-  items?:        CreatePoItemInput[]
+  supplierId?:     number | null
+  currency?:       string
+  exchangeRate?:   number
+  paymentTerm?:    string | null
+  deliveryTerm?:   string | null
+  shippingMethod?: string | null
+  expectedDate?:   string | null
+  remark?:         string | null
+  items?:          CreatePoItemInput[]
 }
 
 export interface CreateReceiptItemInput {

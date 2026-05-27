@@ -74,6 +74,8 @@ export function runMigrations(sqlite: Database) {
     `ALTER TABLE drafts      ADD COLUMN tenant_id INTEGER NOT NULL DEFAULT ${DEFAULT_TENANT_ID}`,
     // Phase 3+: add supplier_id to quotations
     `ALTER TABLE quotations ADD COLUMN supplier_id INTEGER REFERENCES suppliers(id)`,
+    // Phase 5+: add shipping_method to purchase_orders
+    `ALTER TABLE purchase_orders ADD COLUMN shipping_method TEXT`,
   ]) {
     try { sqlite.run(stmt) } catch { /* column already exists */ }
   }

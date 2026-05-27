@@ -1,5 +1,7 @@
 import { Elysia, t }   from "elysia"
 import { authService } from "./service"
+import { BadRequestError, AppError } from "../../lib/errors"
+import { ErrorCodes }  from "../../../../shared/errors"
 
 const GOOGLE_AUTH_URL  = "https://accounts.google.com/o/oauth2/v2/auth"
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
@@ -7,6 +9,8 @@ const GOOGLE_SCOPE     = "https://www.googleapis.com/auth/gmail.modify email pro
 const MS_AUTH_URL      = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
 const MS_TOKEN_URL     = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 const MS_SCOPE         = "Mail.ReadWrite Mail.Send offline_access User.Read"
+
+const FRONTEND_URL = process.env.FRONTEND_URL ?? "http://localhost:5173"
 
 const handler = {
 
@@ -35,7 +39,13 @@ const handler = {
   },
 
   async handleCallback(code: string, state: string): Promise<{ sessionId: string }> {
-    const { sessionId, provider } = JSON.parse(Buffer.from(state, "base64").toString())
+    let parsed: { sessionId: string; provider: string }
+    try {
+      parsed = JSON.parse(Buffer.from(state, "base64").toString())
+    } catch {
+      throw new BadRequestError("OAuth state ไม่ถูกต้อง หรือถูกแก้ไข")
+    }
+    const { sessionId, provider } = parsed
     const isGoogle = provider === "gmail"
 
     const tokenBody: Record<string, string> = {
@@ -54,13 +64,22 @@ const handler = {
     })
     const tokenData = await tokenRes.json()
 
+    if (!tokenRes.ok || !tokenData.access_token) {
+      throw new AppError(
+        "OAuth token exchange ล้มเหลว",
+        502,
+        ErrorCodes.TOKEN_EXPIRED,
+        { provider, error: tokenData.error ?? "unknown" },
+      )
+    }
+
     const userEmail = isGoogle
       ? await fetchGoogleEmail(tokenData.access_token)
       : await fetchMicrosoftEmail(tokenData.access_token)
 
     await authService.saveToken({
       sessionId,
-      provider,
+      provider: provider as "gmail" | "outlook",
       accessToken:  tokenData.access_token,
       refreshToken: tokenData.refresh_token ?? null,
       expiresAt:    Math.floor(Date.now() / 1000) + (tokenData.expires_in ?? 3600),
@@ -76,7 +95,7 @@ const handler = {
 
   async handleLogout(sessionId: string, provider: string) {
     await authService.logout(sessionId, provider)
-    return { ok: true }
+    return { success: true }
   },
 }
 
@@ -95,30 +114,34 @@ async function fetchMicrosoftEmail(accessToken: string): Promise<string> {
 
 export const authRoute = new Elysia()
 
-  .get("/auth/:provider/login", ({ params, query, set }) => {
+  .get("/auth/:provider/login", ({ params, query }) => {
     const url = handler.buildLoginUrl(
       params.provider as "gmail" | "outlook",
       query.sessionId
     )
-    set.redirect = url
+    return new Response(null, { status: 302, headers: { Location: url } })
   }, {
     query: t.Object({ sessionId: t.String() })
   })
 
-  .get("/auth/callback", async ({ query, set }) => {
+  .get("/auth/callback", async ({ query }) => {
     const { sessionId } = await handler.handleCallback(query.code, query.state)
-    set.redirect = `http://localhost:5173?tab=mailbox&session=${sessionId}`
+    return new Response(null, {
+      status: 302,
+      headers: { Location: `${FRONTEND_URL}?tab=mailbox&session=${sessionId}` },
+    })
   }, {
     query: t.Object({ code: t.String(), state: t.String() })
   })
 
-  .get("/auth/status", ({ query }) =>
-    handler.handleStatus(query.sessionId),
-  {
+  .get("/auth/status", async ({ query }) => {
+    const data = await handler.handleStatus(query.sessionId)
+    return { success: true, data }
+  }, {
     query: t.Object({ sessionId: t.String() })
   })
 
-  .delete("/auth/:provider/logout", ({ params, query }) =>
+  .delete("/auth/:provider/logout", async ({ params, query }) =>
     handler.handleLogout(query.sessionId, params.provider),
   {
     query: t.Object({ sessionId: t.String() })

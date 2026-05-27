@@ -29,6 +29,7 @@ export const endpoints = {
   supplier: {
     list:   "/api/suppliers",
     create: "/api/suppliers",
+    options: "/api/suppliers/options",
     get:    (id: number) => `/api/suppliers/${id}`,
     update: (id: number) => `/api/suppliers/${id}`,
     delete: (id: number) => `/api/suppliers/${id}`,
@@ -54,6 +55,7 @@ export const endpoints = {
 
   purchaseOrder: {
     list:          "/api/purchase-orders",
+    summary:       "/api/purchase-orders/summary",
     create:        "/api/purchase-orders",
     get:           (id: number) => `/api/purchase-orders/${id}`,
     update:        (id: number) => `/api/purchase-orders/${id}`,
@@ -62,6 +64,7 @@ export const endpoints = {
     receipts:      (id: number) => `/api/purchase-orders/${id}/receipts`,
     history:       (id: number) => `/api/purchase-orders/${id}/history`,
     fromQuotation: (quotationId: number) => `/api/purchase-orders/from-quotation/${quotationId}`,
+    pdf:           (id: number) => `/api/purchase-orders/${id}/export/pdf`,
   },
 
   upload: {

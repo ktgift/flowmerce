@@ -1,35 +1,7 @@
 import { Elysia, t }          from "elysia"
 import { tenantMiddleware }   from "../../middleware/tenant"
 import { supplierService }    from "./service"
-
-const handler = {
-
-  list:   (tenantId: number, search?: string) => supplierService.findMany(tenantId, search),
-
-  get:    (tenantId: number, id: number) => supplierService.findOne(tenantId, id),
-
-  create: (tenantId: number, body: {
-    name: string; code?: string; taxId?: string; address?: string
-    phone?: string; email?: string; contactPerson?: string; notes?: string
-  }) => supplierService.create(tenantId, {
-    code:          body.code          ?? null,
-    name:          body.name,
-    taxId:         body.taxId         ?? null,
-    address:       body.address       ?? null,
-    phone:         body.phone         ?? null,
-    email:         body.email         ?? null,
-    contactPerson: body.contactPerson ?? null,
-    notes:         body.notes         ?? null,
-    isActive:      true,
-  }),
-
-  update: (tenantId: number, id: number, body: {
-    name?: string; code?: string; taxId?: string; address?: string
-    phone?: string; email?: string; contactPerson?: string; notes?: string; isActive?: boolean
-  }) => supplierService.update(tenantId, id, body),
-
-  remove: (tenantId: number, id: number) => supplierService.delete(tenantId, id),
-}
+import { parseId }            from "../../lib/utils"
 
 const bodySchema = t.Object({
   name:          t.String({ minLength: 1 }),
@@ -57,17 +29,43 @@ const patchSchema = t.Partial(t.Object({
 export const supplierRoute = new Elysia({ prefix: "/suppliers" })
   .use(tenantMiddleware)
 
-  .get("/", ({ tenantId, query }) => handler.list(tenantId, query.search || undefined),
-    { query: t.Object({ search: t.Optional(t.String()) }) })
+  .get("/options", async ({ tenantId }) => {
+    const data = await supplierService.findOptions(tenantId)
+    return { success: true, data }
+  })
 
-  .get("/:id", ({ tenantId, params }) => handler.get(tenantId, Number(params.id)),
-    { params: t.Object({ id: t.String() }) })
+  .get("/", async ({ tenantId, query }) => {
+    const data = await supplierService.findMany(tenantId, query.search || undefined)
+    return { success: true, data }
+  }, { query: t.Object({ search: t.Optional(t.String()) }) })
 
-  .post("/",   ({ tenantId, body }) => handler.create(tenantId, body),
-    { body: bodySchema })
+  .get("/:id", async ({ tenantId, params }) => {
+    const data = await supplierService.findOne(tenantId, parseId(params.id))
+    return { success: true, data }
+  }, { params: t.Object({ id: t.String() }) })
 
-  .patch("/:id", ({ tenantId, params, body }) => handler.update(tenantId, Number(params.id), body),
-    { params: t.Object({ id: t.String() }), body: patchSchema })
+  .post("/", async ({ tenantId, body, set }) => {
+    const data = await supplierService.create(tenantId, {
+      code:          body.code          ?? null,
+      name:          body.name,
+      taxId:         body.taxId         ?? null,
+      address:       body.address       ?? null,
+      phone:         body.phone         ?? null,
+      email:         body.email         ?? null,
+      contactPerson: body.contactPerson ?? null,
+      notes:         body.notes         ?? null,
+      isActive:      true,
+    })
+    set.status = 201
+    return { success: true, data }
+  }, { body: bodySchema })
 
-  .delete("/:id", ({ tenantId, params }) => handler.remove(tenantId, Number(params.id)),
-    { params: t.Object({ id: t.String() }) })
+  .patch("/:id", async ({ tenantId, params, body }) => {
+    const data = await supplierService.update(tenantId, parseId(params.id), body)
+    return { success: true, data }
+  }, { params: t.Object({ id: t.String() }), body: patchSchema })
+
+  .delete("/:id", async ({ tenantId, params, set }) => {
+    await supplierService.delete(tenantId, parseId(params.id))
+    set.status = 204
+  }, { params: t.Object({ id: t.String() }) })

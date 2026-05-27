@@ -31,13 +31,13 @@ export function createInstance(baseURL: string = BASE_URL, { withLoader = true }
       }
 
       const data = err.response?.data
-      if (data && data.ok === false) {
+      if (data && data.success === false) {
         return Promise.reject(data)
       }
 
       const fallback: ErrorResponse = {
-        ok: false,
-        code: "INTERNAL_ERROR",
+        success: false,
+        code:    "INTERNAL_ERROR",
         message: err.message ?? "Unknown error",
       }
       return Promise.reject(fallback)

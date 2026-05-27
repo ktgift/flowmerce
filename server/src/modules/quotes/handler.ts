@@ -3,38 +3,9 @@ import { tenantMiddleware } from "../../middleware/tenant"
 import { quoteService }       from "./service"
 import { quoteDraftService }  from "./draft"
 import { quoteExportService } from "./export"
+import { parseId }            from "../../lib/utils"
 import type { CreateQuoteDto, UpdateQuoteDto, CreateQuoteItemDto, QuoteStatus } from "./model"
 import type { Vertical } from "shared"
-
-const handler = {
-
-  list:   (tenantId: number) => quoteService.findMany(tenantId),
-
-  get:    (tenantId: number, id: number) => quoteService.findOne(tenantId, id),
-
-  create: (tenantId: number, data: CreateQuoteDto) => quoteService.create(tenantId, data),
-
-  update: (tenantId: number, id: number, patch: UpdateQuoteDto) => quoteService.update(tenantId, id, patch),
-
-  updateItems: (tenantId: number, id: number, items: CreateQuoteItemDto[]) =>
-    quoteService.updateItems(tenantId, id, items),
-
-  updateStatus: (tenantId: number, id: number, status: QuoteStatus) =>
-    quoteService.updateStatus(tenantId, id, status),
-
-  remove: (tenantId: number, id: number) => quoteService.delete(tenantId, id),
-
-  aiDraft: (tenantId: number, params: {
-    sessionId:       string
-    vertical:        Vertical
-    customerName:    string
-    customerCompany: string
-    freeText:        string
-  }) => quoteDraftService.generateDraft(params),
-
-  exportPdf:   (tenantId: number, id: number) => quoteExportService.exportPdf(tenantId, id),
-  exportExcel: (tenantId: number, id: number) => quoteExportService.exportExcel(tenantId, id),
-}
 
 const itemSchema = t.Object({
   productId:   t.Optional(t.Number()),
@@ -49,15 +20,21 @@ const itemSchema = t.Object({
 export const quoteRoute = new Elysia({ prefix: "/quotes" })
   .use(tenantMiddleware)
 
-  // List all quotations
-  .get("/", ({ tenantId }) => handler.list(tenantId))
+  .get("/", async ({ tenantId }) => {
+    const data = await quoteService.findMany(tenantId)
+    return { success: true, data }
+  })
 
-  // Get single quotation with items
-  .get("/:id", ({ tenantId, params }) => handler.get(tenantId, Number(params.id)),
-    { params: t.Object({ id: t.String() }) })
+  .get("/:id", async ({ tenantId, params }) => {
+    const data = await quoteService.findOne(tenantId, parseId(params.id))
+    return { success: true, data }
+  }, { params: t.Object({ id: t.String() }) })
 
-  // Create quotation
-  .post("/", ({ tenantId, body }) => handler.create(tenantId, body), {
+  .post("/", async ({ tenantId, body, set }) => {
+    const data = await quoteService.create(tenantId, body as CreateQuoteDto)
+    set.status = 201
+    return { success: true, data }
+  }, {
     body: t.Object({
       customerName:    t.String({ minLength: 1 }),
       customerCompany: t.String({ minLength: 1 }),
@@ -73,8 +50,10 @@ export const quoteRoute = new Elysia({ prefix: "/quotes" })
     }),
   })
 
-  // Update quotation header
-  .patch("/:id", ({ tenantId, params, body }) => handler.update(tenantId, Number(params.id), body), {
+  .patch("/:id", async ({ tenantId, params, body }) => {
+    const data = await quoteService.update(tenantId, parseId(params.id), body as UpdateQuoteDto)
+    return { success: true, data }
+  }, {
     params: t.Object({ id: t.String() }),
     body: t.Partial(t.Object({
       customerName:    t.String(),
@@ -88,16 +67,22 @@ export const quoteRoute = new Elysia({ prefix: "/quotes" })
     })),
   })
 
-  // Replace all items
-  .patch("/:id/items", ({ tenantId, params, body }) =>
-    handler.updateItems(tenantId, Number(params.id), body.items), {
+  .patch("/:id/items", async ({ tenantId, params, body }) => {
+    const data = await quoteService.updateItems(
+      tenantId, parseId(params.id), body.items as CreateQuoteItemDto[],
+    )
+    return { success: true, data }
+  }, {
     params: t.Object({ id: t.String() }),
     body:   t.Object({ items: t.Array(itemSchema) }),
   })
 
-  // Update status
-  .patch("/:id/status", ({ tenantId, params, body }) =>
-    handler.updateStatus(tenantId, Number(params.id), body.status as any), {
+  .patch("/:id/status", async ({ tenantId, params, body }) => {
+    const data = await quoteService.updateStatus(
+      tenantId, parseId(params.id), body.status as QuoteStatus,
+    )
+    return { success: true, data }
+  }, {
     params: t.Object({ id: t.String() }),
     body:   t.Object({
       status: t.Union([
@@ -107,13 +92,15 @@ export const quoteRoute = new Elysia({ prefix: "/quotes" })
     }),
   })
 
-  // Delete quotation
-  .delete("/:id", ({ tenantId, params }) => handler.remove(tenantId, Number(params.id)),
-    { params: t.Object({ id: t.String() }) })
+  .delete("/:id", async ({ tenantId, params, set }) => {
+    await quoteService.delete(tenantId, parseId(params.id))
+    set.status = 204
+  }, { params: t.Object({ id: t.String() }) })
 
-  // AI draft (free-text → structured items, no save)
-  .post("/ai-draft", ({ tenantId, body, vertical }) =>
-    handler.aiDraft(tenantId, { ...body, vertical }), {
+  .post("/ai-draft", async ({ body, vertical }) => {
+    const data = await quoteDraftService.generateDraft({ ...body, vertical: vertical as Vertical })
+    return { success: true, data }
+  }, {
     body: t.Object({
       sessionId:       t.String(),
       customerName:    t.String({ minLength: 1 }),
@@ -122,17 +109,16 @@ export const quoteRoute = new Elysia({ prefix: "/quotes" })
     }),
   })
 
-  // Export as PDF
+  // Binary export — no envelope, return file directly
   .get("/:id/export/pdf", async ({ tenantId, params, set }) => {
-    const pdf = await handler.exportPdf(tenantId, Number(params.id))
+    const pdf = await quoteExportService.exportPdf(tenantId, parseId(params.id))
     set.headers["Content-Type"]        = "application/pdf"
     set.headers["Content-Disposition"] = `attachment; filename="quotation-${params.id}.pdf"`
     return pdf
   }, { params: t.Object({ id: t.String() }) })
 
-  // Export as Excel
   .get("/:id/export/excel", async ({ tenantId, params, set }) => {
-    const buf = await handler.exportExcel(tenantId, Number(params.id))
+    const buf = await quoteExportService.exportExcel(tenantId, parseId(params.id))
     set.headers["Content-Type"]        = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     set.headers["Content-Disposition"] = `attachment; filename="quotation-${params.id}.xlsx"`
     return buf

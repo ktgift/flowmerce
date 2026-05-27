@@ -215,6 +215,7 @@ export const purchaseOrders = sqliteTable("purchase_orders", {
   exchangeRate:     money("exchange_rate"),
   paymentTerm:      text("payment_term"),
   deliveryTerm:     text("delivery_term"),
+  shippingMethod:   text("shipping_method"),
   expectedDate:     text("expected_date"),
   remark:           text("remark"),
   createdBy:        text("created_by"),

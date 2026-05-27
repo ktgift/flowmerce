@@ -1,56 +1,16 @@
 import { db } from "../../db"
 import {
   purchaseOrders, purchaseOrderItems, poReceipts, poReceiptItems,
-  poHistory, poApprovals,
+  poHistory, poApprovals, suppliers,
 } from "../../db/schema/core"
-import { eq, and, isNull, desc, asc, like, sql, count } from "drizzle-orm"
-
-// ─── Types ────────────────────────────────────────────────────
-
-export type PoRow             = typeof purchaseOrders.$inferSelect
-export type PoInsert          = typeof purchaseOrders.$inferInsert
-
-export type PoItemRow         = typeof purchaseOrderItems.$inferSelect
-export type PoItemInsert      = typeof purchaseOrderItems.$inferInsert
-
-export type PoReceiptRow      = typeof poReceipts.$inferSelect
-export type PoReceiptInsert   = typeof poReceipts.$inferInsert
-
-export type PoReceiptItemRow    = typeof poReceiptItems.$inferSelect
-export type PoReceiptItemInsert = typeof poReceiptItems.$inferInsert
-
-export type PoHistoryRow      = typeof poHistory.$inferSelect
-export type PoHistoryInsert   = typeof poHistory.$inferInsert
-
-export type PoApprovalRow     = typeof poApprovals.$inferSelect
-export type PoApprovalInsert  = typeof poApprovals.$inferInsert
-
-export type PoHeaderValues =
-  Omit<PoInsert, "id" | "tenantId" | "createdAt" | "updatedAt" | "deletedAt">
-
-export type PoItemValues =
-  Omit<PoItemInsert, "id" | "tenantId" | "purchaseOrderId">
-
-export type PoReceiptHeaderValues =
-  Omit<PoReceiptInsert, "id" | "tenantId" | "createdAt">
-
-export type PoReceiptItemValues =
-  Omit<PoReceiptItemInsert, "id" | "tenantId" | "receiptId">
-
-export type PoHistoryValues =
-  Omit<PoHistoryInsert, "id" | "tenantId" | "createdAt">
-
-export interface PoFilter {
-  status?:     string
-  supplierId?: number
-  search?:     string
-}
-
-export interface PoFull extends PoRow {
-  items:    PoItemRow[]
-  receipts: PoReceiptRow[]
-  history:  PoHistoryRow[]
-}
+import { eq, and, isNull, desc, asc, like, sql, count, sum } from "drizzle-orm"
+import type {
+  PoFilter,
+  PoRow, PoListRow, PoItemRow, PoReceiptRow, PoReceiptItemRow, PoHistoryRow, PoApprovalRow,
+  PoApprovalInsert,
+  PoHeaderValues, PoItemValues, PoReceiptHeaderValues, PoReceiptItemValues, PoHistoryValues,
+  PoFull, PoStatusSummaryItem,
+} from "../../types/po"
 
 const now = () => sql`(datetime('now'))`
 
@@ -61,7 +21,7 @@ export const poRepository = {
   async findAll(
     tenantId: number,
     filter: PoFilter = {},
-  ): Promise<PoRow[]> {
+  ): Promise<PoListRow[]> {
     const conditions = [
       eq(purchaseOrders.tenantId, tenantId),
       isNull(purchaseOrders.deletedAt),
@@ -70,10 +30,26 @@ export const poRepository = {
     if (filter.supplierId) conditions.push(eq(purchaseOrders.supplierId, filter.supplierId))
     if (filter.search)     conditions.push(like(purchaseOrders.poNumber, `%${filter.search}%`))
 
-    return db.query.purchaseOrders.findMany({
-      where:   and(...conditions),
-      orderBy: [desc(purchaseOrders.updatedAt)],
-    })
+    const rows = await db
+      .select({
+        id:           purchaseOrders.id,
+        poNumber:     purchaseOrders.poNumber,
+        status:       purchaseOrders.status,
+        supplierId:   purchaseOrders.supplierId,
+        supplierName: suppliers.name,
+        currency:     purchaseOrders.currency,
+        exchangeRate: purchaseOrders.exchangeRate,
+        totalAmount:  purchaseOrders.subtotal,
+        expectedDate: purchaseOrders.expectedDate,
+        createdAt:    purchaseOrders.createdAt,
+        createdBy:    purchaseOrders.createdBy,
+      })
+      .from(purchaseOrders)
+      .leftJoin(suppliers, eq(purchaseOrders.supplierId, suppliers.id))
+      .where(and(...conditions))
+      .orderBy(desc(purchaseOrders.updatedAt))
+
+    return rows
   },
 
   async findOne(tenantId: number, id: number): Promise<PoRow | null> {
@@ -193,6 +169,7 @@ export const poRepository = {
     id: number,
     header: Partial<PoHeaderValues>,
     items: PoItemValues[],
+    changedBy?: string | null,
   ): Promise<void> {
     return db.transaction(async (tx) => {
       await tx.update(purchaseOrders)
@@ -223,7 +200,7 @@ export const poRepository = {
         action:          "edited",
         oldStatus:       null,
         newStatus:       null,
-        changedBy:       header.createdBy ?? null,
+        changedBy:       changedBy ?? null,
       })
     })
   },
@@ -380,6 +357,26 @@ export const poRepository = {
       ))
     return row?.value ?? 0
   },
+
+  async summaryByStatus(tenantId: number): Promise<PoStatusSummaryItem[]> {
+    const rows = await db
+      .select({
+        status:   purchaseOrders.status,
+        count:    count(),
+        totalThb: sum(purchaseOrders.totalLandedCost),
+      })
+      .from(purchaseOrders)
+      .where(and(
+        eq(purchaseOrders.tenantId, tenantId),
+        isNull(purchaseOrders.deletedAt),
+      ))
+      .groupBy(purchaseOrders.status)
+
+    return rows.map(r => ({
+      status:   r.status,
+      count:    r.count,
+      totalThb: Number(r.totalThb ?? 0),
+    }))
+  },
 }
 
-export type PoRepository = typeof poRepository

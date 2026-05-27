@@ -1,18 +1,22 @@
-import { poRepository, type PoFilter } from "./repository"
-import { Errors }                       from "../../lib/errors"
-import type { CreatePoInput, UpdatePoInput, PoStatus } from "./model"
-import { activityService }              from "../reporting/activity"
+import { poRepository }        from "./repository"
+import { supplierRepository }  from "../suppliers/repository"
+import { Errors }              from "../../lib/errors"
+import type { PoFilter, CreatePoInput, UpdatePoInput, PoStatus, PoSummary } from "../../types/po"
+import { activityService }     from "../reporting/activity"
 
 const VALID_TRANSITIONS: Record<string, PoStatus[]> = {
-  draft:             ["pending_approval", "cancelled"],
-  pending_approval:  ["approved", "rejected", "cancelled"],
-  approved:          ["sent_to_supplier", "cancelled"],
-  sent_to_supplier:  ["partial_received", "received"],
-  partial_received:  ["received", "closed"],
-  received:          ["closed"],
-  rejected:          ["draft"],
-  cancelled:         [],
-  closed:            [],
+  draft:            ["issued", "cancelled"],
+  issued:           ["acknowledged", "cancelled"],
+  acknowledged:     ["partial_received", "received", "cancelled"],
+  partial_received: ["received", "closed", "cancelled"],
+  received:         ["closed"],
+  closed:           [],
+  cancelled:        [],
+  // Legacy statuses for backward compatibility
+  pending_approval: ["issued", "cancelled"],
+  approved:         ["issued", "cancelled"],
+  sent_to_supplier: ["acknowledged", "partial_received", "received", "cancelled"],
+  rejected:         ["draft"],
 }
 
 const round2 = (n: number) => Math.round(n * 100) / 100
@@ -51,7 +55,14 @@ export const poService = {
   async get(tenantId: number, id: number) {
     const full = await poRepository.findFull(tenantId, id)
     if (!full) throw Errors.PO_NOT_FOUND()
-    return full
+
+    let supplierName: string | null = null
+    if (full.supplierId) {
+      const supplier = await supplierRepository.findOne(tenantId, full.supplierId)
+      supplierName = supplier?.name ?? null
+    }
+
+    return { ...full, totalAmount: full.subtotal, supplierName }
   },
 
   async create(tenantId: number, vertical: string, input: CreatePoInput) {
@@ -109,6 +120,7 @@ export const poService = {
       exchangeRate,
       paymentTerm:     input.paymentTerm ?? null,
       deliveryTerm:    input.deliveryTerm ?? null,
+      shippingMethod:  input.shippingMethod ?? null,
       expectedDate:    input.expectedDate ?? null,
       remark:          input.remark ?? null,
       createdBy:       input.createdBy ?? null,
@@ -137,9 +149,15 @@ export const poService = {
     return this.get(tenantId, po.id)
   },
 
-  async update(tenantId: number, id: number, input: UpdatePoInput) {
+  async update(tenantId: number, id: number, input: UpdatePoInput, changedBy?: string | null) {
     const po = await poRepository.findOne(tenantId, id)
     if (!po) throw Errors.PO_NOT_FOUND()
+
+    if (po.status !== "draft" && po.status !== "pending_approval") {
+      throw Errors.PO_CANNOT_EDIT(po.status)
+    }
+
+    const resetStatus = po.status === "pending_approval" ? ("draft" as const) : undefined
 
     if (input.items !== undefined) {
       const exchangeRate = input.exchangeRate ?? po.exchangeRate ?? 1
@@ -192,21 +210,32 @@ export const poService = {
         exchangeRate,
         paymentTerm:     input.paymentTerm ?? undefined,
         deliveryTerm:    input.deliveryTerm ?? undefined,
+        shippingMethod:  input.shippingMethod ?? undefined,
         expectedDate:    input.expectedDate ?? undefined,
         remark:          input.remark ?? undefined,
         subtotal:        round2(subtotal),
         subtotalThb:     round2(subtotalThb),
         totalLandedCost: round2(totalLandedCost),
-      }, itemsWithCalc)
+        ...(resetStatus ? { status: resetStatus } : {}),
+      }, itemsWithCalc, changedBy)
     } else {
       await poRepository.updateHeader(tenantId, id, {
-        supplierId:   input.supplierId ?? undefined,
-        currency:     input.currency,
-        exchangeRate: input.exchangeRate,
-        paymentTerm:  input.paymentTerm ?? undefined,
-        deliveryTerm: input.deliveryTerm ?? undefined,
-        expectedDate: input.expectedDate ?? undefined,
-        remark:       input.remark ?? undefined,
+        supplierId:     input.supplierId ?? undefined,
+        currency:       input.currency,
+        exchangeRate:   input.exchangeRate,
+        paymentTerm:    input.paymentTerm ?? undefined,
+        deliveryTerm:   input.deliveryTerm ?? undefined,
+        shippingMethod: input.shippingMethod ?? undefined,
+        expectedDate:   input.expectedDate ?? undefined,
+        remark:         input.remark ?? undefined,
+        ...(resetStatus ? { status: resetStatus } : {}),
+      })
+      await poRepository.addHistory(tenantId, {
+        purchaseOrderId: id,
+        action:          "edited",
+        oldStatus:       null,
+        newStatus:       null,
+        changedBy:       changedBy ?? null,
       })
     }
 
@@ -229,10 +258,9 @@ export const poService = {
     }
 
     // Approval transitions require procurement_manager or admin
-    if (newStatus === "approved" || newStatus === "rejected") {
-      if (userRole !== "admin" && userRole !== "procurement_manager") {
-        throw Errors.FORBIDDEN()
-      }
+    if ((newStatus === "approved" || newStatus === "rejected") &&
+        userRole !== "admin" && userRole !== "procurement_manager") {
+      throw Errors.FORBIDDEN()
     }
 
     // repo logs history inside the same transaction
@@ -255,9 +283,25 @@ export const poService = {
     return this.get(tenantId, id)
   },
 
+  async summary(tenantId: number): Promise<PoSummary> {
+    const OPEN_STATUSES = ["draft", "issued", "acknowledged", "partial_received", "received",
+      "pending_approval", "approved", "sent_to_supplier"]
+    const byStatus = await poRepository.summaryByStatus(tenantId)
+    const openItems = byStatus.filter(s => OPEN_STATUSES.includes(s.status))
+    return {
+      byStatus,
+      openCount:    openItems.reduce((acc, s) => acc + s.count, 0),
+      openTotalThb: openItems.reduce((acc, s) => acc + s.totalThb, 0),
+    }
+  },
+
   async softDelete(tenantId: number, id: number) {
     const po = await poRepository.findOne(tenantId, id)
     if (!po) throw Errors.PO_NOT_FOUND()
     await poRepository.softDelete(tenantId, id)
+  },
+
+  async getHistory(tenantId: number, id: number) {
+    return poRepository.findHistory(tenantId, id)
   },
 }

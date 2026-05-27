@@ -5,9 +5,10 @@ import ProtectedRoute from "@/components/hoc/ProtectedRoute"
 import MainLayout from "@/components/layout/MainLayout"
 import LoginPage from "@/components/container/auth/LoginPage"
 import HomePage from "@/components/container/home/HomePage"
-import PoListPage from "@/components/container/purchaseOrder/PoListPage"
-import PoFormPage from "@/components/container/purchaseOrder/PoFormPage"
-import PoDetailPage from "@/components/container/purchaseOrder/PoDetailPage"
+import PoListPage from "@/components/container/purchaseOrder/POList"
+import PoFormPage from "@/components/container/purchaseOrder/form"
+import PoDetailPage from "@/components/container/purchaseOrder/detail"
+import ComponentShowcasePage from "@/components/container/dev/ComponentShowcasePage"
 import { ROUTES } from "@/lib/constants/routes"
 
 function Placeholder({ name }: { name: string }) {
@@ -24,6 +25,10 @@ export const router = createBrowserRouter([
     element: <LoginPage />,
   },
   {
+    path: "/showcase",
+    element: <ComponentShowcasePage />,
+  },
+  {
     path: "/",
     element: <ProtectedRoute />,
     children: [
@@ -38,9 +43,10 @@ export const router = createBrowserRouter([
           {
             path: "purchase-orders",
             children: [
-              { index: true, element: <PoListPage /> },
-              { path: "new", element: <PoFormPage /> },
-              { path: ":id", element: <PoDetailPage /> },
+              { index: true,       element: <PoListPage />                        },
+              { path: "new",       element: <PoFormPage mode="create" />          },
+              { path: ":id",       element: <PoDetailPage />                      },
+              { path: ":id/edit",  element: <PoFormPage mode="edit" />            },
             ],
           },
           { path: "report", element: <Placeholder name="Reports" /> },

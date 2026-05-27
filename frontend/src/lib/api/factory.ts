@@ -2,6 +2,7 @@ import { useQuery, useMutation } from "@tanstack/react-query"
 import type { UseQueryOptions, UseMutationOptions, QueryKey } from "@tanstack/react-query"
 
 import type { ErrorResponse } from "shared/errors"
+import type { ApiResponse }   from "@/lib/@types/api"
 import { getToken } from "@/lib/config/auth"
 import { BASE_URL } from "@/lib/config/http"
 import { api } from "./axios"
@@ -19,13 +20,13 @@ export function createCrudApi<TList, TDetail, TCreate, TUpdate>(
 ) {
   return {
     list:   (params?: Record<string, unknown>) =>
-      api.get<TList>(ep.list, { params }).then((r) => r.data),
+      api.get<ApiResponse<TList>>(ep.list, { params }).then((r) => r.data.data),
     get:    (id: number) =>
-      api.get<TDetail>(ep.get(id)).then((r) => r.data),
+      api.get<ApiResponse<TDetail>>(ep.get(id)).then((r) => r.data.data),
     create: (body: TCreate) =>
-      api.post<TDetail>(ep.create, body).then((r) => r.data),
+      api.post<ApiResponse<TDetail>>(ep.create, body).then((r) => r.data.data),
     update: (id: number, body: TUpdate) =>
-      api.put<TDetail>(ep.update(id), body).then((r) => r.data),
+      api.put<ApiResponse<TDetail>>(ep.update(id), body).then((r) => r.data.data),
     remove: (id: number) =>
       api.delete<void>(ep.delete(id)).then((r) => r.data),
   }
@@ -75,7 +76,7 @@ export async function apiStream(
 
   if (!res.ok || !res.body) {
     const err: ErrorResponse = {
-      ok:      false,
+      success: false,
       code:    "INTERNAL_ERROR",
       message: `Stream error ${res.status}`,
     }

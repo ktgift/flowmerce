@@ -17,3 +17,14 @@ export interface SupplierRecord {
 
 export type NewSupplier = Omit<SupplierRecord, "id" | "createdAt" | "updatedAt" | "deletedAt">
 export type UpdateSupplier = Partial<Omit<NewSupplier, "tenantId">>
+
+export interface SupplierOption {
+  id:            number
+  label:         string
+  code:          string | null
+  contactPerson: string | null
+  email:         string | null
+  taxId:         string | null
+  phone:         string | null
+  address:       string | null
+}

@@ -3,25 +3,21 @@ import { RouterProvider } from "react-router-dom"
 import { queryClient } from "@/lib/api/queryClient"
 import { router } from "@/lib/config/router"
 import GlobalLoader from "@/components/common/GlobalLoader"
-// import { useLoaderStore } from "./lib/services/loaderService"
+import { ConfirmDialogProvider } from "@/components/context/ConfirmDialogContext"
+import { ModalProvider } from "@/components/context/ModalContext"
+import { SnackbarProvider } from "@/components/context/SnackbarContext"
 
 export default function App() {
-
-// function TestLoader() {
-//   const { inc, dec } = useLoaderStore()
-//   return (
-//     <div style={{ position: "fixed", bottom: 16, right: 16, zIndex: 10000 }}>
-//       <button onClick={inc}>Show Loader</button>
-//       <button onClick={dec}>Hide Loader</button>
-//     </div>
-//   )
-// }
-
   return (
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-      <GlobalLoader />
-      {/* <TestLoader /> */}
+      <SnackbarProvider>
+        <ConfirmDialogProvider>
+          <ModalProvider>
+            <RouterProvider router={router} />
+            <GlobalLoader />
+          </ModalProvider>
+        </ConfirmDialogProvider>
+      </SnackbarProvider>
     </QueryClientProvider>
   )
 }

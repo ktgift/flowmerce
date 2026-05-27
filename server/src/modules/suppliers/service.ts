@@ -30,4 +30,8 @@ export const supplierService = {
     if (!record) throw Errors.SUPPLIER_NOT_FOUND()
     await supplierRepository.softDelete(tenantId, id)
   },
+
+  async findOptions(tenantId: number) {
+    return supplierRepository.findOptions(tenantId)
+  },
 }

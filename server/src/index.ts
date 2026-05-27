@@ -17,7 +17,7 @@ import { supplierRoute }      from "./modules/suppliers/handler"
 import { productRoute }       from "./modules/products/handler"
 import { importRoute }        from "./modules/import/handler"
 import { reportRoute, notificationRoute }  from "./modules/reporting/handler"
-import { poRoute }            from "./modules/po/handler"
+import { poRoute }            from "./modules/po/route"
 import { usersRoute }         from "./modules/users/handler"
 
 const app = new Elysia()
@@ -41,37 +41,40 @@ const app = new Elysia()
     })
   })
 
-  // ── Core / master-data routes (no rate limit) ─────────────
-  .use(uploadRoute)
-  .use(authRoute)
-  .use(mailboxRoute)
-  .use(customerRoute)
-  .use(supplierRoute)
-  .use(productRoute)
-  .use(importRoute)
-  .use(quoteRoute)
-  .use(poRoute)
-  .use(usersRoute)
-  .use(reportRoute)
-  .use(notificationRoute)
-
-  // ── AI routes — rate limited (20 req/min/IP) ──────────────
+  // ── All API routes under /api prefix ─────────────────────
   .use(
-    new Elysia()
-      .use(rateLimit({
-        duration: 60_000,
-        max:      20,
-        errorResponse: new Response(
-          JSON.stringify({
-            ok:      false,
-            code:    ErrorCodes.RATE_LIMIT_EXCEEDED,
-            message: "ส่งคำขอมากเกินไป กรุณารอ 1 นาทีแล้วลองใหม่",
-          }),
-          { status: 429, headers: { "Content-Type": "application/json" } }
-        ),
-      }))
-      .use(chatRoute)
-      .use(emailRoute)
+    new Elysia({ prefix: "/api" })
+      // Core / master-data routes (no rate limit)
+      .use(uploadRoute)
+      .use(authRoute)
+      .use(mailboxRoute)
+      .use(customerRoute)
+      .use(supplierRoute)
+      .use(productRoute)
+      .use(importRoute)
+      .use(quoteRoute)
+      .use(poRoute)
+      .use(usersRoute)
+      .use(reportRoute)
+      .use(notificationRoute)
+      // AI routes — rate limited (20 req/min/IP)
+      .use(
+        new Elysia()
+          .use(rateLimit({
+            duration: 60_000,
+            max:      20,
+            errorResponse: new Response(
+              JSON.stringify({
+                ok:      false,
+                code:    ErrorCodes.RATE_LIMIT_EXCEEDED,
+                message: "ส่งคำขอมากเกินไป กรุณารอ 1 นาทีแล้วลองใหม่",
+              }),
+              { status: 429, headers: { "Content-Type": "application/json" } }
+            ),
+          }))
+          .use(chatRoute)
+          .use(emailRoute)
+      )
   )
 
   .get("/health", () => ({ ok: true, timestamp: new Date().toISOString() }))

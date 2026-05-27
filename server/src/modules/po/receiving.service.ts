@@ -1,6 +1,6 @@
-import { poRepository } from "./repository"
-import { Errors } from "../../lib/errors"
-import type { CreateReceiptInput } from "./model"
+import { poRepository }            from "./repository"
+import { Errors }                  from "../../lib/errors"
+import type { CreateReceiptInput } from "../../types/po"
 
 export const receivingService = {
 
@@ -52,14 +52,22 @@ export const receivingService = {
         ? "partial_received"
         : po.status
 
+    await poRepository.addHistory(tenantId, {
+      purchaseOrderId: poId,
+      action:          "receipt_added",
+      oldStatus:       null,
+      newStatus:       null,
+      changedBy:       input.receivedBy ?? null,
+      note:            input.receiptNumber,
+    })
+
     if (newStatus !== po.status) {
-      // updateStatus logs history internally — no separate addHistory call needed
       await poRepository.updateStatus(
         tenantId,
         poId,
         newStatus,
         input.receivedBy ?? null,
-        `รับของ ${input.receiptNumber}`,
+        null,
       )
     }
 

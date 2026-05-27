@@ -48,6 +48,7 @@ export const ErrorCodes = {
   FORBIDDEN:             "FORBIDDEN",
 
   // System
+  NOT_FOUND:           "NOT_FOUND",
   VALIDATION_ERROR:    "VALIDATION_ERROR",
   INTERNAL_ERROR:      "INTERNAL_ERROR",
   RATE_LIMIT_EXCEEDED: "RATE_LIMIT_EXCEEDED",
@@ -56,7 +57,7 @@ export const ErrorCodes = {
 export type ErrorCode = typeof ErrorCodes[keyof typeof ErrorCodes]
 
 export interface ErrorResponse {
-  ok:       false
+  success:  false
   code:     ErrorCode
   message:  string
   details?: Record<string, unknown>

@@ -2,11 +2,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import type { UseMutationOptions } from "@tanstack/react-query"
 
 import type { ErrorResponse } from "shared/errors"
-import type { LoginInput } from "@/lib/schema/auth"
+import type { ApiResponse }   from "@/lib/@types/api"
+import type { LoginInput }    from "@/lib/schema/auth"
 import type { User, LoginResponse, RefreshResponse } from "@/lib/@types/auth"
 import { getToken, setToken, clearToken } from "@/lib/config/auth"
-import { endpoints } from "@/lib/config/endpoints"
-import { QK } from "@/lib/constants/queryKeys"
+import { endpoints }   from "@/lib/config/endpoints"
+import { QK }          from "@/lib/constants/queryKeys"
 import { useAuthStore } from "@/lib/store/authStore"
 import { api, silentApi } from "./axios"
 
@@ -20,7 +21,8 @@ export function useLogin(
 
   return useMutation<LoginResponse, ErrorResponse, LoginInput>({
     mutationFn: (body) =>
-      api.post<LoginResponse>(endpoints.auth.login, body).then((r) => r.data),
+      api.post<ApiResponse<LoginResponse>>(endpoints.auth.login, body)
+        .then((r) => r.data.data),
     ...options,
     onSuccess: (data, vars, onMutateResult, ctx) => {
       setToken(data.token)
@@ -39,7 +41,7 @@ export function useLogout(
 
   return useMutation<void, ErrorResponse, void>({
     mutationFn: () =>
-      api.post<void>(endpoints.auth.logout).then((r) => r.data),
+      api.post<void>(endpoints.auth.logout).then(() => undefined),
     ...options,
     onSuccess: (data, vars, onMutateResult, ctx) => {
       clearToken()
@@ -62,7 +64,8 @@ export function useMe() {
   return useQuery<User, ErrorResponse>({
     queryKey: AUTH_KEY,
     queryFn:  () =>
-      silentApi.get<User>(endpoints.auth.me).then((r) => r.data),
+      silentApi.get<ApiResponse<User>>(endpoints.auth.me)
+        .then((r) => r.data.data),
     enabled:  !!token,
     staleTime: 5 * 60 * 1000,
   })
@@ -75,7 +78,8 @@ export function useRefresh(
 
   return useMutation<RefreshResponse, ErrorResponse, void>({
     mutationFn: () =>
-      silentApi.post<RefreshResponse>(endpoints.auth.refresh).then((r) => r.data),
+      silentApi.post<ApiResponse<RefreshResponse>>(endpoints.auth.refresh)
+        .then((r) => r.data.data),
     ...options,
     onSuccess: (data, vars, onMutateResult, ctx) => {
       setToken(data.token)

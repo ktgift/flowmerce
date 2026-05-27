@@ -1,13 +1,24 @@
 import { z } from "zod"
 
+const supplierSnapshotSchema = z.object({
+  id:            z.number().optional(),
+  label:         z.string().optional(),
+  code:          z.string().nullish(),
+  contactPerson: z.string().nullish(),
+  email:         z.string().nullish(),
+  taxId:         z.string().nullish(),
+  phone:         z.string().nullish(),
+  address:       z.string().nullish(),
+})
+
 export const poItemSchema = z.object({
   itemType:             z.string().optional(),
   refId:                z.number().optional(),
-  name:                 z.string().min(1),
+  name:                 z.string().optional(),
   sku:                  z.string().optional(),
   unit:                 z.string().optional(),
-  quantity:             z.number().min(0),
-  exWorkPrice:          z.number().min(0),
+  quantity:             z.number().min(0).optional(),
+  exWorkPrice:          z.number().min(0).optional(),
   freightCost:          z.number().min(0).optional(),
   cifPrice:             z.number().min(0).optional(),
   taxRate:              z.number().min(0).optional(),
@@ -17,26 +28,30 @@ export const poItemSchema = z.object({
 })
 
 export const poCreateSchema = z.object({
-  supplierId:   z.number().optional(),
-  currency:     z.string().optional(),
-  exchangeRate: z.number().min(0).optional(),
-  paymentTerm:  z.string().optional(),
-  deliveryTerm: z.string().optional(),
-  expectedDate: z.string().optional(),
-  remark:       z.string().optional(),
-  createdBy:    z.string().optional(),
-  items:        z.array(poItemSchema),
+  supplierId:       z.number().optional(),
+  supplierSnapshot: supplierSnapshotSchema.optional(),
+  currency:       z.string().optional(),
+  exchangeRate:   z.number().min(0).optional(),
+  paymentTerm:    z.string().optional(),
+  deliveryTerm:   z.string().optional(),
+  shippingMethod: z.string().optional(),
+  expectedDate:   z.string().optional(),
+  remark:         z.string().optional(),
+  createdBy:      z.string().optional(),
+  items:          z.array(poItemSchema),
 })
 
 export const poUpdateSchema = z.object({
-  supplierId:   z.number().optional(),
-  currency:     z.string().optional(),
-  exchangeRate: z.number().min(0).optional(),
-  paymentTerm:  z.string().optional(),
-  deliveryTerm: z.string().optional(),
-  expectedDate: z.string().optional(),
-  remark:       z.string().optional(),
-  items:        z.array(poItemSchema).optional(),
+  supplierId:       z.number().optional(),
+  supplierSnapshot: supplierSnapshotSchema.optional(),
+  currency:       z.string().optional(),
+  exchangeRate:   z.number().min(0).optional(),
+  paymentTerm:    z.string().optional(),
+  deliveryTerm:   z.string().optional(),
+  shippingMethod: z.string().optional(),
+  expectedDate:   z.string().optional(),
+  remark:         z.string().optional(),
+  items:          z.array(poItemSchema).optional(),
 })
 
 export const receiptItemSchema = z.object({

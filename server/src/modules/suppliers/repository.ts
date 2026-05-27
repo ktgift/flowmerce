@@ -1,7 +1,7 @@
 import { db }        from "../../db"
 import { suppliers } from "../../db/schema"
 import { and, eq, isNull, like, or } from "drizzle-orm"
-import type { SupplierRecord, NewSupplier, UpdateSupplier } from "./model"
+import type { SupplierRecord, NewSupplier, UpdateSupplier, SupplierOption } from "./model"
 
 export const supplierRepository = {
 
@@ -44,6 +44,24 @@ export const supplierRepository = {
     await db.update(suppliers)
       .set({ deletedAt: new Date().toISOString(), isActive: false })
       .where(and(eq(suppliers.tenantId, tenantId), eq(suppliers.id, id)))
+  },
+
+  async findOptions(tenantId: number): Promise<SupplierOption[]> {
+    const rows = await db.query.suppliers.findMany({
+      where: and(eq(suppliers.tenantId, tenantId), isNull(suppliers.deletedAt)),
+      orderBy: (t, { asc }) => [asc(t.name)],
+      columns: { id: true, name: true, code: true, contactPerson: true, email: true, taxId: true, phone: true, address: true },
+    })
+    return rows.map(r => ({
+      id:            r.id,
+      label:         r.name,
+      code:          r.code,
+      contactPerson: r.contactPerson,
+      email:         r.email,
+      taxId:         r.taxId,
+      phone:         r.phone,
+      address:       r.address,
+    }))
   },
 }
 

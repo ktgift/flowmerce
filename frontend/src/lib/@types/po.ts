@@ -70,8 +70,8 @@ export interface PoHistoryEntry {
   id:         number
   poId:       number
   action:     string
-  fromStatus: PoStatus | null
-  toStatus:   PoStatus | null
+  oldStatus:  PoStatus | null
+  newStatus:  PoStatus | null
   changedBy:  string | null
   note:       string | null
   createdAt:  string
@@ -92,10 +92,27 @@ export interface PoListItem {
 }
 
 export interface PoDetail extends PoListItem {
-  paymentTerm:  string | null
-  deliveryTerm: string | null
-  remark:       string | null
-  items:        PoItem[]
-  receipts:     Receipt[]
-  history:      PoHistoryEntry[]
+  paymentTerm:    string | null
+  deliveryTerm:   string | null
+  shippingMethod: string | null
+  remark:         string | null
+  items:          PoItem[]
+  receipts:       Receipt[]
+  history:        PoHistoryEntry[]
+}
+
+export interface ReceiveItem extends PoItem {
+  remainingQty: number
+}
+
+export interface PoStatusSummaryItem {
+  status:   string
+  count:    number
+  totalThb: number
+}
+
+export interface PoSummary {
+  byStatus:     PoStatusSummaryItem[]
+  openCount:    number
+  openTotalThb: number
 }

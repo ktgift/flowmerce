@@ -1,8 +1,8 @@
 import type { ErrorResponse } from "shared/errors"
 
 export interface ApiResponse<T> {
-  ok:   true
-  data: T
+  success: true
+  data:    T
 }
 
 export type ApiResult<T> = ApiResponse<T> | ErrorResponse

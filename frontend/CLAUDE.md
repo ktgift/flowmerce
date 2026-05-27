@@ -92,6 +92,14 @@ interface Customer { id: string; ... }  // ซ้ำกับใน shared
 9. **Type style**: `interface` สำหรับ object shape, `type` สำหรับ union/utility
 10. **Import order**: react → 3rd-party → `@flowmerce/shared/*` → `@/lib` → `@/components` → relative
 11. **No `any`**: ถ้าจำเป็นต้องมี comment `// any: <reason>` 1 บรรทัดเหนือ
+12. **ใช้ภาษาอังกฤษ ถ้าแบบเป็นภาษาไทยให้แปลเป็นภาษาอังกฤษด้วย
+13. **แยก component เป็นย่อย ๆ อย่าเขียนรวมอยู่ไฟล์เดียว ทำให้อ่านง่าย ดูแล แก้ไขง่าย มืออาชีพ best pratice
+14. **resposive ทุกจอ
+15. **style component ของ mui ด้วย sx
+16. **อะไรที่เป็น constants ต้องไปสร้างไว้ใน lib/constants
+17. **รหัสสีต้องไปสร้างไว้ใน frontend/src/lib/constants/colors.ts ห้ามใส่รหัสสีตรง ๆ ในไฟล์ ตรวจสอบก่อนด้วยว่ามีรหัสสีนั้นอยู่แล้วไหม
+18. ใช้ MUI component จาก frontend/src/components/common ถ้าไม่มีให้เป็นสร้างเป็น common ไว้ แล้วเอามาใช้เท่านั้น
+19. ถ้าต้องใช้ state ให้วิเคราะห์ก่อนว่าเหมาะจะใช้ zustand ไหมถ้าได้ให้ใช้ zustand เป็นหลัก
 
 ## Path Aliases (ต้องตั้งใน tsconfig.json + vite.config.ts)
 - `@/*` → `frontend/src/*`
@@ -123,13 +131,8 @@ interface Customer { id: string; ... }  // ซ้ำกับใน shared
 ## งานที่ทำเสร็จแล้ว
 - [x] M0: CLAUDE.md + path alias setup
 - [x] M1: Frontend config + frontend-only types
-- [ ] M2: API Core (axios + factory + queryClient + loaderService)
-- [ ] M3a: auth + user APIs
-- [ ] M3b: customer + supplier APIs
-- [ ] M3c: product + upload APIs
-- [ ] M3d: quotation + purchaseOrder APIs
-- [ ] M3e: chat + email + quote(legacy) + mailbox APIs
-- [ ] M3f: import + report + notification APIs
-- [ ] M3g: lib/api/index.ts re-export
-- [ ] M4: Router + Layout + Theme + Context
-- [ ] M5+: feature pages (per domain)
+- [x] M2: API Core (axios + factory + queryClient + loaderService)
+- [x] M3a: auth + user APIs
+- [x] M3 PO: @types/po.ts + schema/po.schema.ts + api/po.api.ts + endpoints (history, fromQuotation)
+- [x] M3 PO shared types: PoStatus + Create*/Update* inputs → shared/types.ts (server/po/model.ts re-exports จาก shared)
+- [x] M4: Router + Layout shell (Header, Sidebar, MainLayout, ProtectedRoute, GlobalLoader, router.tsx, placeholder pages)

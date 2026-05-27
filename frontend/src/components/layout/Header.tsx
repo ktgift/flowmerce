@@ -1,44 +1,57 @@
+import { usePageHeader } from "@/components/context/PageHeaderContext"
+import { COLORS } from "@/lib/constants/colors"
+import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined"
+import SearchIcon from "@mui/icons-material/Search"
 import AppBar from "@mui/material/AppBar"
 import Box from "@mui/material/Box"
+import Breadcrumbs from "@mui/material/Breadcrumbs"
 import IconButton from "@mui/material/IconButton"
 import InputBase from "@mui/material/InputBase"
+import Link from "@mui/material/Link"
 import Toolbar from "@mui/material/Toolbar"
 import Typography from "@mui/material/Typography"
-import MenuIcon from "@mui/icons-material/Menu"
-import SearchIcon from "@mui/icons-material/Search"
-import { useLocation } from "react-router-dom"
-import { getPageTitle } from "@/lib/constants/pageTitles"
-import { HEADER_HEIGHT } from "@/lib/constants/layout"
-import { COLORS } from "@/lib/constants/colors"
+import { Link as RouterLink } from "react-router-dom"
 
 interface HeaderProps {
   onMenuClick: () => void
 }
 
 export default function Header({ onMenuClick }: HeaderProps) {
-  const { pathname } = useLocation()
-  const title = getPageTitle(pathname)
+  const { config } = usePageHeader()
 
   return (
     <AppBar
       position="relative"
       color="inherit"
       elevation={0}
-      sx={{ borderBottom: "1px solid", borderColor: "divider", bgcolor: COLORS.backgroundPaper, height: HEADER_HEIGHT }}
+      sx={{ borderBottom: "1px solid", borderColor: "divider", bgcolor: COLORS.backgroundPaper }}
     >
       <Toolbar sx={{ gap: 2, minHeight: { xs: 56, sm: 64 } }}>
-        <IconButton
-          edge="start"
-          onClick={onMenuClick}
-          size="small"
-          sx={{ display: { md: "none" }, mr: 0.5 }}
-        >
-          <MenuIcon />
-        </IconButton>
-
-        <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 700 }}>
-          {title}
-        </Typography>
+        {config?.breadcrumbs && config.breadcrumbs.length > 0 ? (
+          <Breadcrumbs aria-label="breadcrumb" sx={{ flexGrow: 1 }}>
+            {config.breadcrumbs.map((crumb, i) => {
+              const isLast = i === config.breadcrumbs!.length - 1
+              return isLast || !crumb.href ? (
+                <Typography key={i} variant="body2" sx={{ fontWeight: 600, color: !isLast ? COLORS.subText : COLORS.text }}>
+                  {crumb.label}
+                </Typography>
+              ) : (
+                <Link
+                  key={i}
+                  component={RouterLink}
+                  to={crumb.href}
+                  variant="body2"
+                  underline="hover"
+                  sx={{ color: COLORS.subText, "&:hover": { color: COLORS.black } }}
+                >
+                  {crumb.label}
+                </Link>
+              )
+            })}
+          </Breadcrumbs>
+        ) : (
+          <Box sx={{ flexGrow: 1 }} />
+        )}
 
         <Box
           sx={{
@@ -74,6 +87,10 @@ export default function Header({ onMenuClick }: HeaderProps) {
             ⌘K
           </Typography>
         </Box>
+
+        <IconButton size="small" sx={{ color: "text.secondary" }}>
+          <NotificationsOutlinedIcon fontSize="small" />
+        </IconButton>
       </Toolbar>
     </AppBar>
   )
