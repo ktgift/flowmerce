@@ -12,10 +12,11 @@ export const PO_STATUS_LABEL: Record<PoStatus, string> = {
   received:         "Fully Received",
   closed:           "Closed",
   cancelled:        "Cancelled",
-  pending_approval: "Pending",
-  approved:         "Approved",
-  sent_to_supplier: "Sent",
-  rejected:         "Rejected",
+  // Phase 2 — approval flow (not yet implemented)
+  // pending_approval: "Pending",
+  // approved:         "Approved",
+  // sent_to_supplier: "Sent",
+  // rejected:         "Rejected",
 }
 
 export const PO_STATUS_DESCRIPTION: Partial<Record<PoStatus, string>> = {
@@ -56,11 +57,11 @@ export const PO_VALID_MANUAL_TRANSITIONS: Partial<Record<PoStatus, PoStatus[]>> 
   received:         ["closed"],
   closed:           [],
   cancelled:        [],
-  // Legacy
-  pending_approval: ["cancelled"],
-  approved:         ["cancelled"],
-  sent_to_supplier: ["acknowledged", "partial_received", "received", "cancelled"],
-  rejected:         [],
+  // Phase 2 — approval flow (not yet implemented)
+  // pending_approval: ["cancelled"],
+  // approved:         ["cancelled"],
+  // sent_to_supplier: ["acknowledged", "partial_received", "received", "cancelled"],
+  // rejected:         [],
 }
 
 export const PO_STATUS_LIST: PoStatus[] = [
@@ -71,10 +72,11 @@ export const PO_STATUS_LIST: PoStatus[] = [
   "received",
   "closed",
   "cancelled",
-  "pending_approval",
-  "approved",
-  "sent_to_supplier",
-  "rejected",
+  // Phase 2 — approval flow (not yet implemented)
+  // "pending_approval",
+  // "approved",
+  // "sent_to_supplier",
+  // "rejected",
 ]
 
 /** Ordered steps shown in the status timeline */
@@ -114,7 +116,8 @@ export const PO_HISTORY_ACTION_LABEL: Record<string, (actor: string) => string> 
   created:       (actor) => `${actor} created Draft`,
   edited:        (actor) => `${actor} updated PO`,
   deleted:       (actor) => `${actor} deleted PO`,
-  approved:      (actor) => `${actor} approved PO`,
+  // Phase 2 — approval flow (not yet implemented)
+  // approved:      (actor) => `${actor} approved PO`,
   sent:          (actor) => `${actor} sent PO to supplier`,
   receipt_added: (actor) => `${actor} added goods receipt`,
   pdf_exported:  (actor) => `${actor} exported PDF`,
@@ -125,10 +128,11 @@ export const PO_PAGE_SIZE_OPTIONS = [10, 25, 50] as const
 export const PO_SUMMARY_STATUS_ORDER: string[] = [
   ...PO_TIMELINE_STEPS.map((s) => s.status),
   "cancelled",
-  "pending_approval",
-  "approved",
-  "sent_to_supplier",
-  "rejected",
+  // Phase 2 — approval flow (not yet implemented)
+  // "pending_approval",
+  // "approved",
+  // "sent_to_supplier",
+  // "rejected",
 ]
 
 export const PO_DELIVERY_TERMS = [

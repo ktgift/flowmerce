@@ -5,6 +5,7 @@ import DataTable, { type TableColumn } from "@/components/common/DataTable"
 import type { PoDetail, PoItem } from "@/lib/@types/po"
 import { formatMoney, formatNumber } from "@/lib/utils/format"
 import { COLORS } from "@/lib/constants/colors"
+import { calcItemCost, buildReceivedMap } from "@/lib/utils/poCalculations"
 
 interface PoItemsTabProps {
   po: PoDetail
@@ -22,12 +23,14 @@ function enrichItem(
   exchangeRate: number,
   receivedMap:  Record<number, number>,
 ): EnrichedPoItem {
-  const cifThb        = (item.cifPrice ?? 0) * exchangeRate
-  const tax           = item.taxRate ?? 0
-  const clear         = item.clearingCost ?? 0
-  const whPct         = item.warehouseCostPercent ?? 0
-  const landedPerUnit = cifThb + tax + clear + cifThb * (whPct / 100)
-  const remainingQty  = item.quantity - (receivedMap[item.id] ?? 0)
+  const { cifThb, landed: landedPerUnit } = calcItemCost({
+    cifUsdPerUnit:        item.cifPrice ?? 0,
+    taxRate:              item.taxRate ?? 0,
+    clearingCost:         item.clearingCost ?? 0,
+    warehouseCostPercent: item.warehouseCostPercent ?? 0,
+    exchangeRate,
+  })
+  const remainingQty = item.quantity - (receivedMap[item.id] ?? 0)
   return { ...item, cifThb, landedPerUnit, lineTotal: landedPerUnit * item.quantity, remainingQty }
 }
 
@@ -85,15 +88,7 @@ function buildColumns(currency: string): TableColumn<EnrichedPoItem>[] {
 export default function PoItemsTab({ po }: PoItemsTabProps) {
   const { items, exchangeRate, currency, receipts } = po
 
-  const receivedMap = useMemo(() => {
-    const map: Record<number, number> = {}
-    for (const receipt of receipts) {
-      for (const ri of receipt.items ?? []) {
-        map[ri.poItemId] = (map[ri.poItemId] ?? 0) + ri.quantityReceived
-      }
-    }
-    return map
-  }, [receipts])
+  const receivedMap = useMemo(() => buildReceivedMap(receipts), [receipts])
 
   const enrichedItems = items.map((item) => enrichItem(item, exchangeRate, receivedMap))
   const columns       = buildColumns(currency)

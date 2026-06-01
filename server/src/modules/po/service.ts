@@ -12,11 +12,11 @@ const VALID_TRANSITIONS: Record<string, PoStatus[]> = {
   received:         ["closed"],
   closed:           [],
   cancelled:        [],
-  // Legacy statuses for backward compatibility
-  pending_approval: ["issued", "cancelled"],
-  approved:         ["issued", "cancelled"],
-  sent_to_supplier: ["acknowledged", "partial_received", "received", "cancelled"],
-  rejected:         ["draft"],
+  // Phase 2 — approval flow (not yet implemented)
+  // pending_approval: ["issued", "cancelled"],
+  // approved:         ["issued", "cancelled"],
+  // sent_to_supplier: ["acknowledged", "partial_received", "received", "cancelled"],
+  // rejected:         ["draft"],
 }
 
 const round2 = (n: number) => Math.round(n * 100) / 100
@@ -248,7 +248,7 @@ export const poService = {
     newStatus: PoStatus,
     changedBy?: string,
     note?:      string,
-    userRole?:  string,
+    _userRole?: string, // Phase 2 — approval flow
   ) {
     const po = await poRepository.findOne(tenantId, id)
     if (!po) throw Errors.PO_NOT_FOUND()
@@ -257,26 +257,26 @@ export const poService = {
       throw Errors.PO_INVALID_STATUS(po.status, newStatus)
     }
 
-    // Approval transitions require procurement_manager or admin
-    if ((newStatus === "approved" || newStatus === "rejected") &&
-        userRole !== "admin" && userRole !== "procurement_manager") {
-      throw Errors.FORBIDDEN()
-    }
+    // Phase 2 — approval flow (not yet implemented)
+    // if ((newStatus === "approved" || newStatus === "rejected") &&
+    //     userRole !== "admin" && userRole !== "procurement_manager") {
+    //   throw Errors.FORBIDDEN()
+    // }
 
     // repo logs history inside the same transaction
     await poRepository.updateStatus(tenantId, id, newStatus, changedBy, note)
 
-    // Record approval decision when approved or rejected
-    if (newStatus === "approved" || newStatus === "rejected") {
-      const full = await poRepository.findFull(tenantId, id)
-      await poRepository.addApproval(tenantId, {
-        purchaseOrderId: id,
-        approverName:    changedBy ?? "unknown",
-        decision:        newStatus,
-        amountThb:       full?.totalLandedCost ?? null,
-        note:            note ?? null,
-      })
-    }
+    // Phase 2 — approval flow (not yet implemented)
+    // if (newStatus === "approved" || newStatus === "rejected") {
+    //   const full = await poRepository.findFull(tenantId, id)
+    //   await poRepository.addApproval(tenantId, {
+    //     purchaseOrderId: id,
+    //     approverName:    changedBy ?? "unknown",
+    //     decision:        newStatus,
+    //     amountThb:       full?.totalLandedCost ?? null,
+    //     note:            note ?? null,
+    //   })
+    // }
 
     activityService.poStatusChanged(tenantId, id, po.status, newStatus).catch(() => {})
 
@@ -284,8 +284,8 @@ export const poService = {
   },
 
   async summary(tenantId: number): Promise<PoSummary> {
-    const OPEN_STATUSES = ["draft", "issued", "acknowledged", "partial_received", "received",
-      "pending_approval", "approved", "sent_to_supplier"]
+    const OPEN_STATUSES = ["draft", "issued", "acknowledged", "partial_received", "received"]
+    // Phase 2 — approval flow: add "pending_approval", "approved", "sent_to_supplier"
     const byStatus = await poRepository.summaryByStatus(tenantId)
     const openItems = byStatus.filter(s => OPEN_STATUSES.includes(s.status))
     return {

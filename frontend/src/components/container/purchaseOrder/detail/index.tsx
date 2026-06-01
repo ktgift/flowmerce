@@ -18,7 +18,7 @@ import { useSetPageHeader } from "@/components/context/PageHeaderContext"
 import { useModal }   from "@/lib/hook/useModal"
 import { useSnackbar } from "@/lib/hook/useSnackbar"
 import { getPoExportBlockers } from "@/lib/utils/po"
-import type { ReceiveItem } from "@/lib/@types/po"
+import { buildReceiveItems } from "@/lib/utils/poCalculations"
 
 export default function PoDetailPage() {
   const { id }    = useParams<{ id: string }>()
@@ -32,18 +32,7 @@ export default function PoDetailPage() {
   const { data: po, isError } = usePo(poId)
   const changeStatus          = useChangePoStatus(poId)
 
-  const receiveItems = useMemo<ReceiveItem[]>(() => {
-    if (!po) return []
-    const receivedMap: Record<number, number> = {}
-    for (const receipt of po.receipts) {
-      for (const ri of receipt.items ?? []) {
-        receivedMap[ri.poItemId] = (receivedMap[ri.poItemId] ?? 0) + ri.quantityReceived
-      }
-    }
-    return po.items
-      .map((item) => ({ ...item, remainingQty: item.quantity - (receivedMap[item.id] ?? 0) }))
-      .filter((item) => item.remainingQty > 0)
-  }, [po])
+  const receiveItems = useMemo(() => (po ? buildReceiveItems(po) : []), [po])
 
   const handleOpenReceive = useCallback(() => {
     if (!po || receiveItems.length === 0) return

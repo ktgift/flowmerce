@@ -20,10 +20,10 @@ function getStepIndex(status: PoStatus): number {
 
 function getStatusDate(status: PoStatus, history: PoHistoryEntry[]): string | null {
   if (status === "draft") {
-    const entry = history.find((h) => h.action === "created" || h.fromStatus === null)
+    const entry = history.find((h) => h.action === "created" || h.oldStatus === null)
     return entry?.createdAt ?? null
   }
-  const entry = history.find((h) => h.toStatus === status)
+  const entry = history.find((h) => h.newStatus === status)
   return entry?.createdAt ?? null
 }
 
@@ -32,8 +32,7 @@ export default function PoStatusTimeline({
   history,
 }: PoStatusTimelineProps) {
   const activeIndex = getStepIndex(currentStatus)
-  const isCancelledOrRejected =
-    currentStatus === "cancelled" || currentStatus === "rejected"
+  const isCancelledOrRejected = currentStatus === "cancelled"
 
   return (
     <Paper

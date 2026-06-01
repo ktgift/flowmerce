@@ -62,7 +62,6 @@ Notes:
 - `DB_PATH` is supported by server config and should point to persistent storage.
 - Keep reverse proxy (Nginx/Caddy) on port 80/443 and forward to server port 1422.
 
-
 ---
 
 # 📋 Purchase Order (PO) System Design Document

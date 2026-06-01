@@ -14,7 +14,7 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Roboto", sans-serif',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Roboto", "Noto Sans Thai", sans-serif',
     fontSize: FONT_SIZE,
     htmlFontSize: 16,
     body1: { fontSize: FONT_SIZE },

@@ -60,10 +60,11 @@ export const PO_STATUS_BAR_COLORS: Record<string, string> = {
   received:         COLORS.success,
   closed:           COLORS.teal,
   cancelled:        COLORS.error,
-  pending_approval: COLORS.warning,
-  approved:         COLORS.primary,
-  sent_to_supplier: COLORS.secondary,
-  rejected:         COLORS.redLight,
+  // Phase 2 — approval flow (not yet implemented)
+  // pending_approval: COLORS.warning,
+  // approved:         COLORS.primary,
+  // sent_to_supplier: COLORS.secondary,
+  // rejected:         COLORS.redLight,
 } as const
 
 export const PO_STATUS_COLORS = {
@@ -74,8 +75,9 @@ export const PO_STATUS_COLORS = {
   received:         { bg: COLORS.greenLight,    color: COLORS.greenDark  },
   closed:           { bg: COLORS.tealLight,     color: COLORS.tealDark   },
   cancelled:        { bg: COLORS.pinkLight,     color: COLORS.redDark    },
-  pending_approval: { bg: COLORS.orangeLight,   color: COLORS.orangeDark },
-  approved:         { bg: COLORS.blueLight,     color: COLORS.blueDeep   },
-  sent_to_supplier: { bg: COLORS.indigoLight,   color: COLORS.indigoDeep },
-  rejected:         { bg: COLORS.redLighter,    color: COLORS.redDeep    },
+  // Phase 2 — approval flow (not yet implemented)
+  // pending_approval: { bg: COLORS.orangeLight,   color: COLORS.orangeDark },
+  // approved:         { bg: COLORS.blueLight,     color: COLORS.blueDeep   },
+  // sent_to_supplier: { bg: COLORS.indigoLight,   color: COLORS.indigoDeep },
+  // rejected:         { bg: COLORS.redLighter,    color: COLORS.redDeep    },
 } as const

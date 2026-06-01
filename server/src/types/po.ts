@@ -89,10 +89,11 @@ export const poStatusSchema = t.Union([
   t.Literal("received"),
   t.Literal("closed"),
   t.Literal("cancelled"),
-  t.Literal("pending_approval"),
-  t.Literal("approved"),
-  t.Literal("sent_to_supplier"),
-  t.Literal("rejected"),
+  // Phase 2 — approval flow (not yet implemented)
+  // t.Literal("pending_approval"),
+  // t.Literal("approved"),
+  // t.Literal("sent_to_supplier"),
+  // t.Literal("rejected"),
 ])
 
 export const listQuerySchema = t.Object({

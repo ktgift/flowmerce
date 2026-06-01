@@ -6,6 +6,7 @@ import Divider from "@mui/material/Divider"
 import TotalRow from "@/components/common/TotalRow"
 import { COLORS } from "@/lib/constants/colors"
 import type { PoCreateFormValues } from "@/lib/schema/po.schema"
+import { calcItemCost } from "@/lib/utils/poCalculations"
 
 interface PoTotalsSummaryProps {
   control:      Control<PoCreateFormValues>
@@ -21,18 +22,15 @@ export default function PoTotalsSummary({ control, exchangeRate }: PoTotalsSumma
   let totalLanded = 0
 
   for (const item of items) {
-    const qty     = Number(item?.quantity             ?? 0)
-    const exw     = Number(item?.exWorkPrice          ?? 0)
-    const freight = Number(item?.freightCost          ?? 0)
-    const tax     = Number(item?.taxRate              ?? 0)
-    const clear   = Number(item?.clearingCost         ?? 0)
-    const wh      = Number(item?.warehouseCostPercent ?? 0)
-
-    const cifUsd = exw + freight
-    const cifThb = cifUsd * exchangeRate
-    const taxThb = cifThb * (tax / 100)
-    const landed = cifThb + taxThb + clear + cifThb * (wh / 100)
-
+    const qty = Number(item?.quantity ?? 0)
+    const exw = Number(item?.exWorkPrice ?? 0)
+    const { cifThb, taxThb, landed } = calcItemCost({
+      cifUsdPerUnit:        exw + Number(item?.freightCost          ?? 0),
+      taxRate:              Number(item?.taxRate                    ?? 0),
+      clearingCost:         Number(item?.clearingCost              ?? 0),
+      warehouseCostPercent: Number(item?.warehouseCostPercent      ?? 0),
+      exchangeRate,
+    })
     totalExwUsd += exw    * qty
     totalCifThb += cifThb * qty
     totalTaxThb += taxThb * qty

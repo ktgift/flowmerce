@@ -160,10 +160,11 @@ export type PoStatus =
   | "received"
   | "closed"
   | "cancelled"
-  | "pending_approval"
-  | "approved"
-  | "sent_to_supplier"
-  | "rejected"
+  // Phase 2 — approval flow (not yet implemented)
+  // | "pending_approval"
+  // | "approved"
+  // | "sent_to_supplier"
+  // | "rejected"
 
 export interface CreatePoItemInput {
   itemType?:             string

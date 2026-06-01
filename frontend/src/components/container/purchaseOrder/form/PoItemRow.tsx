@@ -10,6 +10,7 @@ import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined"
 
 import { COLORS } from "@/lib/constants/colors"
 import type { PoCreateFormValues } from "@/lib/schema/po.schema"
+import { calcItemCost } from "@/lib/utils/poCalculations"
 
 interface PoItemRowProps {
   index:        number
@@ -81,16 +82,15 @@ export default function PoItemRow({ index, control, setValue, exchangeRate, onRe
     setValue(`items.${index}.${field}`, v === "" ? undefined : v)
   }
 
-  const qty    = Number(item?.quantity    ?? 0)
-  const exw    = Number(item?.exWorkPrice ?? 0)
-  const freight= Number(item?.freightCost ?? 0)
-  const tax    = Number(item?.taxRate     ?? 0)
-  const clear  = Number(item?.clearingCost ?? 0)
-  const wh     = Number(item?.warehouseCostPercent ?? 0)
-
-  const cifUsd   = exw + freight
-  const cifThb   = cifUsd * exchangeRate
-  const landedU  = cifThb * (1 + tax / 100) + clear + cifThb * (wh / 100)
+  const qty = Number(item?.quantity ?? 0)
+  const exw = Number(item?.exWorkPrice ?? 0)
+  const { cifUsd, cifThb, landed: landedU } = calcItemCost({
+    cifUsdPerUnit:        exw + Number(item?.freightCost          ?? 0),
+    taxRate:              Number(item?.taxRate                    ?? 0),
+    clearingCost:         Number(item?.clearingCost              ?? 0),
+    warehouseCostPercent: Number(item?.warehouseCostPercent      ?? 0),
+    exchangeRate,
+  })
 
   return (
     <TableRow sx={{ "&:hover": { bgcolor: `${COLORS.primarylight}20` } }}>
