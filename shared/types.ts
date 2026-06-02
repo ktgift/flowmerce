@@ -224,4 +224,20 @@ export interface CreateReceiptInput {
   items:         CreateReceiptItemInput[]
 }
 
+// ─── Import (Excel import wizard) ─────────────────────────────────
+
+export type ImportTargetTable = "trader_products" | "customers" | "suppliers"
+
+export const IMPORT_TARGET_TABLES: readonly ImportTargetTable[] = [
+  "trader_products",
+  "customers",
+  "suppliers",
+] as const
+
+export const IMPORT_SYSTEM_FIELDS: Record<ImportTargetTable, readonly string[]> = {
+  trader_products: ["code", "name", "description", "unit", "category", "sell_price", "cost_price", "qty_on_hand"],
+  customers:       ["code", "name", "tax_id", "phone", "email", "address", "contact_person"],
+  suppliers:       ["code", "name", "tax_id", "phone", "email", "address", "contact_person"],
+} as const
+
 export * from "./errors"

@@ -1,8 +1,8 @@
 import Box from "@mui/material/Box"
 import Typography from "@mui/material/Typography"
-import Paper from "@mui/material/Paper"
 import CheckIcon from "@mui/icons-material/Check"
 
+import Card from "@/components/common/Card"
 import type { PoStatus } from "@/lib/@types/po"
 import type { PoHistoryEntry } from "@/lib/@types/po"
 import { PO_TIMELINE_STEPS } from "@/lib/constants/po"
@@ -35,10 +35,7 @@ export default function PoStatusTimeline({
   const isCancelledOrRejected = currentStatus === "cancelled"
 
   return (
-    <Paper
-      variant="outlined"
-      sx={{ p: 3, borderRadius: 2, mb: 2.5, overflowX: "auto" }}
-    >
+    <Card sx={{ p: 3, mb: 2.5, overflowX: "auto" }}>
       <Typography variant="h2" sx={{ fontWeight: 700, fontSize: "1rem", mb: 2, color: COLORS.textLabelBlack }}>
         Status Timeline
       </Typography>
@@ -121,6 +118,6 @@ export default function PoStatusTimeline({
           )
         })}
       </Box>
-    </Paper>
+    </Card>
   )
 }

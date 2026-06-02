@@ -1,6 +1,7 @@
 import Fuse from "fuse.js"
+import type { ImportTargetTable } from "shared"
 
-export type TargetTable = "trader_products" | "customers" | "suppliers"
+export type TargetTable = ImportTargetTable
 
 const FIELD_SYNONYMS: Record<TargetTable, Record<string, string[]>> = {
   trader_products: {

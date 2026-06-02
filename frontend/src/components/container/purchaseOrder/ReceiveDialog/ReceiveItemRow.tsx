@@ -2,9 +2,9 @@ import type { Control } from "react-hook-form"
 import Box      from "@mui/material/Box"
 import Chip     from "@mui/material/Chip"
 import Grid     from "@mui/material/Grid"
-import Paper    from "@mui/material/Paper"
 import Typography from "@mui/material/Typography"
 
+import Card           from "@/components/common/Card"
 import FormDatePicker  from "@/components/common/FormDatePicker"
 import FormNumberField from "@/components/common/FormNumberField"
 import FormTextField   from "@/components/common/FormTextField"
@@ -22,10 +22,7 @@ export default function ReceiveItemRow({ control, index, item }: ReceiveItemRowP
   const alreadyReceived = item.quantity - item.remainingQty
 
   return (
-    <Paper
-      variant="outlined"
-      sx={{ p: 2, mb: 1.5, borderRadius: 2 }}
-    >
+    <Card sx={{ p: 2, mb: 1.5 }}>
       {/* Item header */}
       <Box sx={{ mb: 1.5 }}>
         <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.textLabelBlack }}>
@@ -100,6 +97,6 @@ export default function ReceiveItemRow({ control, index, item }: ReceiveItemRowP
           />
         </Grid>
       </Grid>
-    </Paper>
+    </Card>
   )
 }

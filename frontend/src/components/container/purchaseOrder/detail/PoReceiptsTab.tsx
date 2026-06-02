@@ -1,11 +1,11 @@
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import Divider from "@mui/material/Divider"
-import Paper from "@mui/material/Paper"
 import Typography from "@mui/material/Typography"
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined"
 import AddIcon from "@mui/icons-material/Add"
 
+import Card from "@/components/common/Card"
 import EmptyState from "@/components/common/EmptyState"
 import SectionCard from "@/components/common/SectionCard"
 import type { Receipt } from "@/lib/@types/po"
@@ -18,7 +18,7 @@ interface PoReceiptsTabProps {
 
 function ReceiptCard({ receipt }: { receipt: Receipt }) {
   return (
-    <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, mb: 1.5 }}>
+    <Card sx={{ p: 2, mb: 1.5 }}>
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <Typography variant="body2" sx={{ fontWeight: 700 }}>
           {receipt.receiptNumber}
@@ -55,7 +55,7 @@ function ReceiptCard({ receipt }: { receipt: Receipt }) {
           Note: {receipt.note}
         </Typography>
       )}
-    </Paper>
+    </Card>
   )
 }
 

@@ -27,6 +27,28 @@ export function errorHandler(app: Elysia) {
       }
     }
 
+    // Elysia body/query/params validation errors (code === "VALIDATION")
+    if ((error as any)?.code === "VALIDATION") {
+      const ve = error as any
+      logger.warn({
+        type:     "validation_error",
+        on:       ve.type,
+        property: ve.property ?? ve.path,
+        summary:  ve.summary ?? ve.message,
+        path,
+      })
+      set.status = 422
+      return {
+        success: false,
+        code:    ErrorCodes.VALIDATION_ERROR,
+        message: ve.summary ?? ve.message ?? "Invalid request",
+        details: {
+          on:       ve.type,
+          property: ve.property ?? ve.path,
+        },
+      }
+    }
+
     if (error instanceof AppError) {
       logger.warn({
         type:    "app_error",

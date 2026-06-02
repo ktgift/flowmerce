@@ -32,13 +32,17 @@ export const importRoute = new Elysia({ prefix: "/import" })
   .use(tenantMiddleware)
 
   // GET /import/templates – list saved templates
-  .get("/templates", ({ tenantId }) => handler.listTemplates(tenantId))
+  .get("/templates", async ({ tenantId }) => {
+    const data = await handler.listTemplates(tenantId)
+    return { success: true, data }
+  })
 
   // POST /import/suggest – parse Excel and suggest column mapping
   .post("/suggest", async ({ tenantId, body }) => {
     const fileContent = body.file
     const buffer = Buffer.from(await fileContent.arrayBuffer())
-    return handler.suggest(buffer, body.targetTable as TargetTable, tenantId, fileContent.name)
+    const data = await handler.suggest(buffer, body.targetTable as TargetTable, tenantId, fileContent.name)
+    return { success: true, data }
   }, {
     body: t.Object({
       file:        t.File(),
@@ -47,8 +51,11 @@ export const importRoute = new Elysia({ prefix: "/import" })
   })
 
   // POST /import/templates – save a column mapping template
-  .post("/templates", ({ tenantId, body }) =>
-    handler.saveTemplate(tenantId, body.name, body.targetTable as TargetTable, body.columnMapping), {
+  .post("/templates", async ({ tenantId, body, set }) => {
+    const data = await handler.saveTemplate(tenantId, body.name, body.targetTable as TargetTable, body.columnMapping)
+    set.status = 201
+    return { success: true, data }
+  }, {
     body: t.Object({
       name:          t.String({ minLength: 1 }),
       targetTable:   t.Union(TARGET_TABLES.map(v => t.Literal(v))),
@@ -60,7 +67,7 @@ export const importRoute = new Elysia({ prefix: "/import" })
   .post("/execute", async ({ tenantId, body }) => {
     const fileContent = body.file
     const buffer = Buffer.from(await fileContent.arrayBuffer())
-    return handler.execute(
+    const data = await handler.execute(
       tenantId,
       buffer,
       fileContent.name,
@@ -70,6 +77,7 @@ export const importRoute = new Elysia({ prefix: "/import" })
       body.upsertKey,
       body.dryRun,
     )
+    return { success: true, data }
   }, {
     body: t.Object({
       file:          t.File(),
@@ -77,6 +85,6 @@ export const importRoute = new Elysia({ prefix: "/import" })
       columnMapping: t.Record(t.String(), t.String()),
       sheetName:     t.Optional(t.String()),
       upsertKey:     t.Optional(t.String()),
-      dryRun:        t.Optional(t.Boolean()),
+      dryRun:        t.Optional(t.BooleanString()),
     }),
   })

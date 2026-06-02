@@ -6,4 +6,5 @@ export const QK = {
   purchaseOrders: "purchaseOrders",
   auth: "auth",
   users: "users",
+  import: "import",
 } as const

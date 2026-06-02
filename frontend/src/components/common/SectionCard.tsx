@@ -1,9 +1,9 @@
 import type { ReactNode } from "react"
 import Box from "@mui/material/Box"
-import Paper from "@mui/material/Paper"
 import Typography from "@mui/material/Typography"
 import type { SxProps, Theme } from "@mui/material/styles"
 
+import Card from "@/components/common/Card"
 import { COLORS } from "@/lib/constants/colors"
 
 interface SectionCardProps {
@@ -15,7 +15,7 @@ interface SectionCardProps {
 
 export default function SectionCard({ title, children, action, sx }: SectionCardProps) {
   return (
-    <Paper variant="outlined" sx={{ borderRadius: 2, height: "100%", ...sx }}>
+    <Card sx={{ height: "100%", ...sx }}>
       <Box
         sx={{
           px: 2.5,
@@ -30,6 +30,6 @@ export default function SectionCard({ title, children, action, sx }: SectionCard
         {action}
       </Box>
       {children}
-    </Paper>
+    </Card>
   )
 }

@@ -1,9 +1,9 @@
 import Grid from "@mui/material/Grid"
-import Paper from "@mui/material/Paper"
 import Typography from "@mui/material/Typography"
 import Box from "@mui/material/Box"
 import Divider from "@mui/material/Divider"
 
+import Card from "@/components/common/Card"
 import DetailLabel from "@/components/common/DetailLabel"
 import type { PoDetail } from "@/lib/@types/po"
 import { formatDate, formatMoney } from "@/lib/utils/format"
@@ -43,7 +43,7 @@ export default function PoOverviewTab({ po }: PoOverviewTabProps) {
       <Grid container spacing={2}>
         {/* Info card */}
         <Grid size={{ xs: 12, md: 7 }}>
-          <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, height: "100%" }}>
+          <Card sx={{ p: 3, height: "100%" }}>
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, sm: 4 }}>
                 <DetailLabel label="Supplier"      value={po.supplierName} />
@@ -75,12 +75,12 @@ export default function PoOverviewTab({ po }: PoOverviewTabProps) {
                 )}
               </Grid>
             </Grid>
-          </Paper>
+          </Card>
         </Grid>
 
         {/* Summary card */}
         <Grid size={{ xs: 12, md: 5 }}>
-          <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, height: "100%" }}>
+          <Card sx={{ p: 3, height: "100%" }}>
             <Typography variant="caption" sx={{ fontWeight: 700, textTransform: "uppercase", color: "text.secondary", letterSpacing: "0.05em" }}>
               Summary
             </Typography>
@@ -101,7 +101,7 @@ export default function PoOverviewTab({ po }: PoOverviewTabProps) {
                 {formatMoney(po.totalAmount, "THB")}
               </Typography>
             </Box>
-          </Paper>
+          </Card>
         </Grid>
       </Grid>
     </Box>

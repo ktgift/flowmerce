@@ -8,6 +8,7 @@ import HomePage from "@/components/container/home/HomePage"
 import PoListPage from "@/components/container/purchaseOrder/POList"
 import PoFormPage from "@/components/container/purchaseOrder/form"
 import PoDetailPage from "@/components/container/purchaseOrder/detail"
+import ImportPage from "@/components/container/import/ImportPage"
 import ComponentShowcasePage from "@/components/container/dev/ComponentShowcasePage"
 import { ROUTES } from "@/lib/constants/routes"
 
@@ -53,7 +54,7 @@ export const router = createBrowserRouter([
           { path: "chat", element: <Placeholder name="AI Assistant" /> },
           { path: "email", element: <Placeholder name="Email" /> },
           { path: "notification", element: <Placeholder name="Notifications" /> },
-          { path: "import", element: <Placeholder name="Import Data" /> },
+          { path: "import", element: <ImportPage /> },
           { path: "setting", element: <Placeholder name="Settings" /> },
         ],
       },

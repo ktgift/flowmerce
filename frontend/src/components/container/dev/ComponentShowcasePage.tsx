@@ -7,11 +7,11 @@ import Divider from "@mui/material/Divider"
 import Grid from "@mui/material/Grid"
 import Stack from "@mui/material/Stack"
 import Typography from "@mui/material/Typography"
-import Paper from "@mui/material/Paper"
 import AddIcon from "@mui/icons-material/Add"
 import DeleteIcon from "@mui/icons-material/Delete"
 import EditIcon from "@mui/icons-material/Edit"
 
+import Card from "@/components/common/Card"
 import PageHeader from "@/components/common/PageHeader"
 import StatusBadge from "@/components/common/StatusBadge"
 import DataTable, { type TableColumn } from "@/components/common/DataTable"
@@ -30,7 +30,7 @@ import { useConfirmDialog } from "@/lib/hook/useConfirmDialog"
 // ─────────────────────────────────────────────────────────
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
+    <Card sx={{ p: 3 }}>
       <Typography
         variant="overline"
         sx={{ color: "primary.main", fontWeight: 700, letterSpacing: "0.1em", display: "block", mb: 2 }}
@@ -38,7 +38,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
         {title}
       </Typography>
       {children}
-    </Paper>
+    </Card>
   )
 }
 

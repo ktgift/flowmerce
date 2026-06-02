@@ -7,7 +7,6 @@ import {
 } from "@tanstack/react-table"
 import Box from "@mui/material/Box"
 import CircularProgress from "@mui/material/CircularProgress"
-import Paper from "@mui/material/Paper"
 import Table from "@mui/material/Table"
 import TableBody from "@mui/material/TableBody"
 import TableCell from "@mui/material/TableCell"
@@ -16,6 +15,8 @@ import TableHead from "@mui/material/TableHead"
 import TablePagination from "@mui/material/TablePagination"
 import TableRow from "@mui/material/TableRow"
 import Typography from "@mui/material/Typography"
+
+import Card from "@/components/common/Card"
 import { COLORS } from "@/lib/constants/colors"
 
 export interface TableColumn<T> {
@@ -39,7 +40,7 @@ interface DataTableProps<T> {
   onPageSizeChange: (size: number) => void
   loading?: boolean
   onRowClick?: (row: T) => void
-  /** Section title rendered inside the Paper with a bottom divider */
+  /** Section title rendered inside the Card with a bottom divider */
   title?: React.ReactNode
   filterBar?: React.ReactNode
   /** Replaces the generated TableBody rows with custom content */
@@ -91,7 +92,7 @@ export default function DataTable<T extends object>({
   })
 
   return (
-    <Paper variant="outlined" sx={{ borderRadius: 2, overflow: "hidden" }}>
+    <Card sx={{ overflow: "hidden" }}>
       {title && (
         <Box sx={{ px: 2, py: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
           {title}
@@ -206,6 +207,6 @@ export default function DataTable<T extends object>({
           />
         </Box>
       )}
-    </Paper>
+    </Card>
   )
 }

@@ -71,6 +71,12 @@ export const endpoints = {
     import: "/api/import",
   },
 
+  import: {
+    suggest:   "/api/import/suggest",
+    execute:   "/api/import/execute",
+    templates: "/api/import/templates",
+  },
+
   chat: {
     ask:      "/api/chat",
     sessions: "/api/chat/sessions",
