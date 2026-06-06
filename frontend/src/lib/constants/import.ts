@@ -1,5 +1,35 @@
 import { IMPORT_TARGET_TABLES, type ImportTargetTable } from "shared"
 
+import type { ImportMode, ImportModeMeta } from "@/lib/@types/import"
+
+export const IMPORT_MODE_OPTIONS: { value: ImportMode; label: string }[] = [
+  { value: "generic",          label: "Generic" },
+  { value: "supplier_catalog", label: "Supplier Catalog" },
+]
+
+export const IMPORT_SUPPLIER_CATALOG_TARGET: ImportTargetTable = "trader_products"
+
+export const IMPORT_MODES: ImportModeMeta[] = [
+  {
+    value:    "generic",
+    label:    "Generic",
+    hint:     "Open table",
+    iconName: "bolt",
+  },
+  {
+    value:    "supplier_catalog",
+    label:    "Supplier catalog",
+    hint:     "1 file = 1 supplier",
+    iconName: "tag",
+    isNew:    true,
+  },
+]
+
+export const IMPORT_MODE_HINTS: Record<ImportMode, string> = {
+  generic:          "Import to any table — products, customers, or suppliers.",
+  supplier_catalog: "One file = one supplier. Every row gets linked automatically.",
+}
+
 export const IMPORT_STEPS = [
   "Upload",
   "Match Template",
@@ -33,6 +63,37 @@ export const IMPORT_FILE_ACCEPT = [
 ]
 
 export const IMPORT_CONFIDENCE_THRESHOLD = 0.7
+
+export const IMPORT_FIELD_LABELS: Record<ImportTargetTable, Record<string, string>> = {
+  trader_products: {
+    code:        "Product code",
+    name:        "Product name",
+    description: "Description",
+    unit:        "Unit of measure",
+    category:    "Category",
+    sell_price:  "Sell price",
+    cost_price:  "Cost price",
+    qty_on_hand: "Quantity on hand",
+  },
+  customers: {
+    code:           "Customer code",
+    name:           "Customer name",
+    tax_id:         "Tax ID",
+    phone:          "Phone",
+    email:          "Email",
+    address:        "Address",
+    contact_person: "Contact person",
+  },
+  suppliers: {
+    code:           "Supplier code",
+    name:           "Supplier name",
+    tax_id:         "Tax ID",
+    phone:          "Phone",
+    email:          "Email",
+    address:        "Address",
+    contact_person: "Contact person",
+  },
+}
 
 export const IMPORT_IGNORE_VALUE = ""
 export const IMPORT_IGNORE_LABEL = "— Ignore —"

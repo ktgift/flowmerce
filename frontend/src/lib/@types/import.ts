@@ -2,6 +2,28 @@ import type { ImportTargetTable } from "shared"
 
 export type { ImportTargetTable }
 
+export type ImportMode = "generic" | "supplier_catalog"
+
+export interface SupplierCatalogContext {
+  supplierId:   number | null
+  newName:      string | null
+}
+
+export interface ImportModeMeta {
+  value: ImportMode
+  label: string
+  hint:  string
+  iconName: "bolt" | "tag"
+  isNew?: boolean
+}
+
+export type ImportSheetKind = "data" | "noise"
+
+export interface ImportSheetRow {
+  name: string
+  kind: ImportSheetKind
+}
+
 export interface ImportMatch {
   header:   string
   field:    string | null

@@ -24,8 +24,8 @@ import ImportMatchStatusBanner from "./ImportMatchStatusBanner"
 import ImportMappingPreviewCard, {
   type ImportMappingRowData,
 } from "./ImportMappingPreviewCard"
-import ImportSavedTemplatesCard from "./ImportSavedTemplatesCard"
-import ImportTipsCard from "./ImportTipsCard"
+import ImportSavedTemplatesCard from "../ImportSavedTemplatesCard"
+import ImportTipsCard from "../ImportTipsCard"
 import ImportUpsertKeyBar from "./ImportUpsertKeyBar"
 
 export default function ImportStepMapping() {
@@ -56,7 +56,10 @@ export default function ImportStepMapping() {
   })
 
   const { mutate: execute, isPending: isExecuting } = useExecuteImport({
-    onSuccess: (data) => setExecuteResult(data),
+    onSuccess: (data) => {
+      setExecuteResult(data)
+      setStep(2)
+    },
     onError:   (err)  => snackbar.error(err.message ?? "Failed to preview import"),
   })
 

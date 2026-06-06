@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 import Box from "@mui/material/Box"
 import Step from "@mui/material/Step"
 import StepLabel from "@mui/material/StepLabel"
@@ -9,21 +9,31 @@ import { COLORS } from "@/lib/constants/colors"
 import { IMPORT_STEPS } from "@/lib/constants/import"
 import { useImportWizardStore } from "@/lib/store/importWizardStore"
 
-import ImportStepUpload  from "./ImportStepUpload"
-import ImportStepMapping from "./ImportStepMapping"
-import ImportStepPreview from "./ImportStepPreview"
+import ImportModeChip          from "./ImportModeChip"
+import ImportStepMapping       from "./generic/ImportStepMapping"
+import ImportStepPreview       from "./generic/ImportStepPreview"
+import ImportStepMapPreview    from "./supplierCatalog/ImportStepMapPreview"
+import ImportStepMatchTemplate from "./supplierCatalog/ImportStepMatchTemplate"
+import ImportStepResult        from "./supplierCatalog/ImportStepResult"
+import ImportStepSummary       from "./supplierCatalog/ImportStepSummary"
+import ImportStepUpload        from "./ImportStepUpload"
 
 export default function ImportPage() {
-  const { step, reset } = useImportWizardStore()
+  const { step, mode, reset } = useImportWizardStore()
 
-  useSetPageHeader(
-    {
-      title:       "Import Data",
-      subtitle:    "Upload Excel to import Products, Customers, or Suppliers",
+  const headerConfig = useMemo(() => {
+    const isSupplier = mode === "supplier_catalog"
+    return {
+      title:       "Import data",
+      titleSuffix: isSupplier ? <ImportModeChip /> : undefined,
+      subtitle:    isSupplier
+        ? "Upload a supplier price list — Flowmerce detects the supplier, picks the right sheet, and maps columns for you."
+        : "Upload Excel to import Products, Customers, or Suppliers",
       breadcrumbs: [{ label: "DATA" }, { label: "Import Data" }],
-    },
-    [],
-  )
+    }
+  }, [mode])
+
+  useSetPageHeader(headerConfig, [mode])
 
   useEffect(() => () => reset(), [reset])
 
@@ -50,7 +60,7 @@ export default function ImportPage() {
                   },
                 }}
               >
-                {`${idx + 1}. ${label}`}
+                {label}
               </StepLabel>
             </Step>
           ))}
@@ -58,8 +68,10 @@ export default function ImportPage() {
       </Box>
 
       {step === 0 && <ImportStepUpload />}
-      {step === 1 && <ImportStepMapping />}
-      {step === 2 && <ImportStepPreview />}
+      {step === 1 && (mode === "supplier_catalog" ? <ImportStepMatchTemplate /> : <ImportStepMapping />)}
+      {step === 2 && (mode === "supplier_catalog" ? <ImportStepMapPreview /> : <ImportStepPreview />)}
+      {step === 3 && (mode === "supplier_catalog" ? <ImportStepSummary />    : <ImportStepPreview />)}
+      {step === 4 && (mode === "supplier_catalog" ? <ImportStepResult />     : <ImportStepPreview />)}
     </Box>
   )
 }
